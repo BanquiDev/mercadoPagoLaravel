@@ -25,3 +25,9 @@ Route::middleware('api')->post('/', 'App\Http\Controllers\MpController@mercadoPa
 Route::middleware('api')->post('/client', 'App\Http\Controllers\MpController@mercadoPagoClient');
 
 Route::middleware('api')->post('/card', 'App\Http\Controllers\MpController@saveCard');
+
+Route::middleware('api')->get('/cards', 'App\Http\Controllers\MpController@getClientCards');
+
+Route::middleware('api')->get('/client', 'App\Http\Controllers\MpController@getClient');
+
+Route::middleware('api')->post('/payment', 'App\Http\Controllers\MpController@payment');
