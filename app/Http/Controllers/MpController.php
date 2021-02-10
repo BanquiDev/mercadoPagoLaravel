@@ -10,7 +10,7 @@ use MercadoPago\Payment;
 use MercadoPago\Client;
 use MercadoPago\Card;
 // use Illuminate\Support\Facades\Input;
-MercadoPago\SDK::setAccessToken("TEST-2328908812279734-070509-4e87e2b552a20611336e91b2ae03743e-530429288"); // Either Production or SandBox AccessToken
+MercadoPago\SDK::setAccessToken("TEST-7051903996391108-020519-e6c940504d06a4aadda4fc54fc4703e1-530429288"); // Either Production or SandBox AccessToken
 
 
 class MpController extends Controller
@@ -118,25 +118,46 @@ class MpController extends Controller
       // $form = $_REQUEST['json'];
       //  $formDecoded = json_decode($request);
       // var_dump($formDecoded);
-      
-      $customer = new MercadoPago\Customer();
-      $customer->email =$request->customer;
-      $customer->save();
-      // $id= $customer;       
-      $card = new MercadoPago\Card();
-      $card->token = $request->card;
-      $card->customer_id =$customer->id;
-      $card->save();
+      $email=$request->customer;
+      $filters=array("email"=>$email);
+      $customer = MercadoPago\Customer::search($filters);
+      if(count($customer) == 0){
+        // var_dump(count($customer),'no existe');
+        // die;
+        $customer = new MercadoPago\Customer();
+        $customer->email =$request->customer;
+        $customer->save();
+    
+        $card = new MercadoPago\Card();
+        $card->token = $request->card;
+        $card->customer_id =$customer->id;
+        $card->save();
 
-      $customerResponse =[
-        "id"=>$customer->id,
-        "default_card"=>$customer->default_card,
-        "cards"=>$customer->cards
-      ];
+        $customerResponse =[
+          "id"=>$customer->id,
+          "default_card"=>$customer->default_card,
+          "cards"=>$customer->cards
+        ];
+      }else{
+        // var_dump(' existe',count($customer));
+        // die;
+        $card = new MercadoPago\Card();
+        $card->token = $request->card;
+        $card->customer_id =$customer[0]->id;
+        $card->save();
+        
+        $customerResponse =[
+          "id"=>$customer[0]->id,
+          "default_card"=>$customer[0]->default_card,
+          "cards"=>$customer[0]->cards
+        ];
+      }
+        // $id= $customer;       
+
       // var_dump($card);
       // die;
       $customerEncoded = json_encode($customerResponse);
-      echo $customerEncoded;
+      return $customerEncoded;
       // saveCard()
     }
 
@@ -189,9 +210,13 @@ class MpController extends Controller
       // var_dump( $customer);
       // die;
       // if(sizeof($customer) !=0){
-        $cards = $customer[0]->cards;
-        $cardsEncoded = json_encode($cards);
-        return $cardsEncoded;
+        if(count($customer) != 0){
+          $cards = $customer[0]->cards;
+          $cardsEncoded = json_encode($cards);
+          return $cardsEncoded;
+        }else{
+          return [];
+        }
       // }else{
       //   return false;
       // }
